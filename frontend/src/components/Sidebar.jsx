@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 function Sidebar({
   filter, setFilter,
@@ -6,8 +7,10 @@ function Sidebar({
   searchQuery, setSearchQuery,
   collapsed, setCollapsed,
   clearCompleted,
+  username, onLogout,
 }) {
   const [showSettings, setShowSettings] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
 
   const navItems = [
     {
@@ -36,10 +39,8 @@ function Sidebar({
     },
   ];
 
-  const handleSignOut = () => {
-    if (window.confirm('앱을 초기화하시겠습니까?')) {
-      window.location.reload();
-    }
+  const handleLogout = () => {
+    if (window.confirm('로그아웃 하시겠습니까?')) onLogout();
   };
 
   const handleClearCompleted = () => {
@@ -50,13 +51,13 @@ function Sidebar({
     }
   };
 
-  /* ── Collapsed (icon-only) view ── */
+  /* ── Collapsed view ── */
   if (collapsed) {
     return (
-      <div className="w-14 flex flex-col items-center py-5 gap-4 bg-white flex-shrink-0 transition-all">
+      <div className="w-14 flex flex-col items-center py-5 gap-4 bg-white dark:bg-gray-800 flex-shrink-0 transition-all">
         <button
           onClick={() => setCollapsed(false)}
-          className="text-gray-400 hover:text-gray-700 transition"
+          className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition"
           title="메뉴 펼치기"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -69,7 +70,7 @@ function Sidebar({
               key={item.id}
               onClick={() => setFilter(item.id)}
               title={item.label}
-              className={`p-2 rounded-xl transition ${filter === item.id ? 'bg-gray-100 text-gray-800' : 'text-gray-400 hover:bg-gray-50'}`}
+              className={`p-2 rounded-xl transition ${filter === item.id ? 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
             >
               {item.icon}
             </button>
@@ -79,7 +80,7 @@ function Sidebar({
           <button
             onClick={() => { setCollapsed(false); setShowSettings(true); }}
             title="Settings"
-            className="p-2 rounded-xl text-gray-400 hover:bg-gray-50 transition"
+            className="p-2 rounded-xl text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
@@ -93,13 +94,13 @@ function Sidebar({
 
   /* ── Expanded view ── */
   return (
-    <div className="w-60 flex flex-col p-5 bg-white flex-shrink-0 relative">
+    <div className="w-60 flex flex-col p-5 bg-white dark:bg-gray-800 flex-shrink-0 relative">
 
       {/* Settings Modal */}
       {showSettings && (
-        <div className="absolute inset-0 bg-white rounded-l-3xl z-10 flex flex-col p-5">
+        <div className="absolute inset-0 bg-white dark:bg-gray-800 rounded-l-3xl z-10 flex flex-col p-5">
           <div className="flex items-center justify-between mb-6">
-            <span className="font-bold text-gray-800">Settings</span>
+            <span className="font-bold text-gray-800 dark:text-white">Settings</span>
             <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600 transition">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -107,18 +108,41 @@ function Sidebar({
             </button>
           </div>
 
-          <div className="space-y-3">
-            <div className="p-3 rounded-xl bg-gray-50">
+          <div className="space-y-4">
+            {/* Theme Toggle */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-700">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">{isDark ? '🌙' : '☀️'}</span>
+                <div>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-200">다크 모드</p>
+                  <p className="text-xs text-gray-400">{isDark ? '어두운 테마' : '밝은 테마'}</p>
+                </div>
+              </div>
+              {/* Toggle Switch */}
+              <button
+                onClick={toggleTheme}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${
+                  isDark ? 'bg-indigo-500' : 'bg-gray-200'
+                }`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${
+                  isDark ? 'translate-x-5' : 'translate-x-0'
+                }`} />
+              </button>
+            </div>
+
+            {/* Clear Completed */}
+            <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700">
               <p className="text-xs text-gray-400 mb-1">완료된 항목</p>
-              <p className="text-sm font-semibold text-gray-700">{completedCount}개</p>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">{completedCount}개</p>
             </div>
             <button
               onClick={handleClearCompleted}
               disabled={completedCount === 0}
               className={`w-full py-2.5 rounded-xl text-sm font-medium transition ${
                 completedCount > 0
-                  ? 'bg-red-50 text-red-500 hover:bg-red-100'
-                  : 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                  ? 'bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50'
+                  : 'bg-gray-50 dark:bg-gray-700 text-gray-300 cursor-not-allowed'
               }`}
             >
               완료 항목 모두 삭제
@@ -133,10 +157,10 @@ function Sidebar({
 
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
-        <span className="font-bold text-gray-800 text-base">Menu</span>
+        <span className="font-bold text-gray-800 dark:text-white text-base">Menu</span>
         <button
           onClick={() => setCollapsed(true)}
-          className="text-gray-400 hover:text-gray-600 transition"
+          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"
           title="메뉴 접기"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -146,7 +170,7 @@ function Sidebar({
       </div>
 
       {/* Search */}
-      <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2 mb-6">
+      <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-xl px-3 py-2 mb-6">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-gray-400 flex-shrink-0">
           <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
         </svg>
@@ -155,7 +179,7 @@ function Sidebar({
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           placeholder="Search"
-          className="bg-transparent text-sm text-gray-600 placeholder-gray-400 outline-none w-full"
+          className="bg-transparent text-sm text-gray-600 dark:text-gray-200 placeholder-gray-400 outline-none w-full"
         />
         {searchQuery && (
           <button onClick={() => setSearchQuery('')} className="text-gray-300 hover:text-gray-500 transition flex-shrink-0">
@@ -176,15 +200,15 @@ function Sidebar({
               onClick={() => setFilter(item.id)}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition ${
                 filter === item.id
-                  ? 'bg-gray-100 font-semibold text-gray-900'
-                  : 'text-gray-500 hover:bg-gray-50'
+                  ? 'bg-gray-100 dark:bg-gray-700 font-semibold text-gray-900 dark:text-white'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <div className="flex items-center gap-2">
-                <span className={filter === item.id ? 'text-gray-700' : 'text-gray-400'}>{item.icon}</span>
+                <span className={filter === item.id ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400'}>{item.icon}</span>
                 <span>{item.label}</span>
               </div>
-              <span className={`text-xs ${filter === item.id ? 'text-gray-600' : 'text-gray-300'}`}>
+              <span className={`text-xs ${filter === item.id ? 'text-gray-600 dark:text-gray-300' : 'text-gray-300'}`}>
                 {item.count}
               </span>
             </button>
@@ -192,11 +216,18 @@ function Sidebar({
         </div>
       </div>
 
+      {/* Username */}
+      {username && (
+        <div className="px-3 py-2 mb-2">
+          <p className="text-xs text-gray-400">로그인: <span className="font-medium text-gray-600 dark:text-gray-300">{username}</span></p>
+        </div>
+      )}
+
       {/* Bottom */}
       <div className="mt-auto space-y-1">
         <button
           onClick={() => setShowSettings(true)}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
@@ -205,8 +236,8 @@ function Sidebar({
           Settings
         </button>
         <button
-          onClick={handleSignOut}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-500 hover:bg-gray-50 transition"
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
