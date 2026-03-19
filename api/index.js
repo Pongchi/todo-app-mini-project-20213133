@@ -47,3 +47,8 @@ app.delete('/api/todos/:id', async (req, res) => {
 });
 
 module.exports = app;
+
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`서버 실행 중: http://localhost:${PORT}`));
+}
