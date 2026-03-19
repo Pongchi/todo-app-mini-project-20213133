@@ -11,6 +11,8 @@ function App() {
   const [selectedTodo, setSelectedTodo] = useState(null);
   const [filter, setFilter] = useState('active');
   const [newTitle, setNewTitle] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => { fetchTodos(); }, []);
 
@@ -39,14 +41,28 @@ function App() {
     if (selectedTodo?._id === id) setSelectedTodo(null);
   };
 
-  const filteredTodos = todos.filter(t => {
-    if (filter === 'active') return !t.completed;
-    if (filter === 'completed') return t.completed;
-    return true;
-  });
+  const clearCompleted = async () => {
+    const completed = todos.filter(t => t.completed);
+    await Promise.all(completed.map(t => axios.delete(`${API_URL}/todos/${t._id}`)));
+    setTodos(prev => prev.filter(t => !t.completed));
+    if (selectedTodo?.completed) setSelectedTodo(null);
+  };
+
+  const filteredTodos = todos
+    .filter(t => {
+      if (filter === 'active') return !t.completed;
+      if (filter === 'completed') return t.completed;
+      return true;
+    })
+    .filter(t =>
+      searchQuery.trim() === '' ||
+      t.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   const activeCount = todos.filter(t => !t.completed).length;
   const completedCount = todos.filter(t => t.completed).length;
+
+  const filterLabel = filter === 'active' ? 'Today' : filter === 'completed' ? 'Completed' : 'All Tasks';
 
   return (
     <div className="min-h-screen bg-[#e8ede5] flex items-center justify-center p-6">
@@ -59,19 +75,22 @@ function App() {
           activeCount={activeCount}
           completedCount={completedCount}
           totalCount={todos.length}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          collapsed={sidebarCollapsed}
+          setCollapsed={setSidebarCollapsed}
+          clearCompleted={clearCompleted}
         />
 
         {/* Main */}
         <div className="flex-1 flex flex-col p-7 bg-[#f7f8f6] border-x border-gray-100 overflow-hidden">
           <div className="flex items-baseline gap-3 mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {filter === 'active' ? 'Today' : filter === 'completed' ? 'Completed' : 'All Tasks'}
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900">{filterLabel}</h1>
             <span className="text-2xl font-bold text-gray-300">{filteredTodos.length}</span>
           </div>
 
           {/* Add Task */}
-          <form onSubmit={addTodo} className="flex items-center gap-3 mb-3 group">
+          <form onSubmit={addTodo} className="flex items-center gap-3 mb-3">
             <button
               type="submit"
               className="w-5 h-5 flex items-center justify-center text-gray-300 hover:text-indigo-500 transition flex-shrink-0"
@@ -90,7 +109,6 @@ function App() {
           </form>
           <div className="w-full h-px bg-gray-200 mb-3" />
 
-          {/* Task List */}
           <div className="flex-1 overflow-y-auto">
             <TodoList
               todos={filteredTodos}
